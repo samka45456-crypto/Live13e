@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>devilal_Player</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css" crossorigin="anonymous">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    #player-container {
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 16 / 9;
+      margin: 10px 0;
+      position: relative;
+      background-color: black;
+      border: 2px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      background-color: black;
+    }
+
+    #status-message {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #ccc;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ad-container">
+    <script type="text/javascript">
+      atOptions = {
+        'key': 'db78e49a3c97dc3562c3b48559ea4a28',
+        'format': 'iframe',
+        'height': 50,
+        'width': 320,
+        'params': {}
+      };
+    </script>
+    </div>
+
+  <div id="player-container">
+    <video id="video" autoplay playsinline muted></video>
+  </div>
+
+  <div id="status-message">Initializing player...</div>
+
+  <div class="ad-container">
+    <script type="text/javascript">
+      atOptions = {
+        'key': 'db78e49a3c97dc3562c3b48559ea4a28',
+        'format': 'iframe',
+        'height': 50,
+        'width': 320,
+        'params': {}
+      };
+    </script>
+    </div>
+
+  <script>
+    // --- Deobfuscated Shaka Player Initialization ---
+
+    // 1. Define the stream details
+    const MANIFEST_URL = 'https://jiotvpllive.cdn.jio.com/bpk-tv/Disney_Channel_BTS/output/index.mpd?__hdnea__=st=1763204691~exp=1763291091~acl=/*~hmac=9bcb808e5c99ccccea5bf6b71d9b6ebb87703126746f29cf9d4df670c6cc149c&xxx=%7Ccookie=__hdnea__=st=1763204691~exp=1763291091~acl=/*~hmac=9bcb808e5c99ccccea5bf6b71d9b6ebb87703126746f29cf9d4df670c6cc149c';
+    const CLEAR_KEYS = {
+      '5181d3e6698055578cedc5bfc86b3e56': '3dca7917d8cf9bb7095dc72b48bdcd3c'
+    };
+
+    function updateStatus(message) {
+      document.getElementById('status-message').textContent = message;
+    }
+
+    async function initPlayer() {
+      // 2. Get the video element and player container
+      const video = document.getElementById('video');
+      const playerContainer = document.getElementById('player-container');
+
+      // 3. Install shaka-player polyfills
+      shaka.polyfill.installAll();
+
+      // 4. Check for browser support
+      if (!shaka.Player.isBrowserSupported()) {
+        updateStatus('❌ Browser not supported!');
+        return;
+      }
+
+      // 5. Create a Shaka Player instance and UI
+      const player = new shaka.Player(video);
+      const ui = new shaka.ui.Overlay(player, playerContainer, video);
+
+      // 6. Configure the player with low latency and DRM (ClearKeys)
+      player.configure({
+        'streaming': {
+          'bufferingGoal': 10,
+          'rebufferingGoal': 2,
+          'startAtSegmentBoundary': true,
+          'lowLatencyMode': true
+        },
+        'manifest': {
+          'dash': {
+            'ignoreMinBufferTime': true
+          }
+        },
+        'drm': {
+          'clearKeys': CLEAR_KEYS
+        }
+      });
+
+      // 7. Add an error listener
+      player.addEventListener('error', (event) => {
+        console.error('Player error:', event.detail);
+        updateStatus(`⚠️ Playback error. Stream load failed: ${event.detail.code} (See console for details)`);
+      });
+
+      // 8. Try to load the stream
+      try {
+        updateStatus('Attempting to load stream...');
+        await player.load(MANIFEST_URL);
+        console.log('Stream loaded successfully!');
+        updateStatus('Stream loaded successfully!');
+
+        // 9. Attempt to play the video (it's muted, so autoplay should work)
+        try {
+          video.muted = false;
+          await video.play();
+        } catch (e) {
+          // Fallback: If autoplay fails (e.g., due to browser restrictions), re-mute and try again
+          video.muted = true;
+          await video.play();
+        }
+
+      } catch (error) {
+        console.error('⚠️ Failed to load stream. Player error:', error);
+        updateStatus('⚠️ Failed to load stream. Please try again.');
+      }
+    }
+
+    // Initialize player when the DOM is ready
+    document.addEventListener('DOMContentLoaded', initPlayer);
+  </script>
+
+  <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
+</body>
+</html>
